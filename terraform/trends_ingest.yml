@@ -1,0 +1,17 @@
+id: trends_ingest
+namespace: Topterms
+description: |
+  Extracts startup data from the public BigQuery dataset, 
+  processes it, and loads it into our optimized table structure
+
+tasks:
+  - id: extract_data
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      SELECT * 
+      FROM  \`bigquery-public-data.google_trends.international_top_terms\`
+      WHERE refresh_date = "2025-04-29"
+      LIMIT 1000
+
+    destinationTable: "{{gcp.project}}.topterms_dataset.Top_Terms_raw"
+    serviceAccount: "{{gcp.serviceAccount}}"

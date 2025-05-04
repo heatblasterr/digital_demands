@@ -1,0 +1,80 @@
+id: testing_gcp_trends
+namespace: zoomcamp
+
+inputs:
+  - id: date
+    type: DATE
+    displayName: Select Date
+    defaults: 2025-05-01
+  
+
+tasks:
+
+  - id: bq_trends_table_schmea
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+     CREATE TABLE IF NOT EXISTS `{{kv('GCP_PROJECT_ID')}}.{{kv('GCP_DATASET')}}.trends_table` (
+      region_name STRING,
+      score INT64,
+      rank INT64,
+      country_code STRING,
+      region_code STRING,
+      term STRING,
+      week DATE,
+      percent_gain FLOAT64,
+      refresh_date DATE,
+      country_name STRING
+     )
+     PARTITION BY refresh_date ;
+
+  - id: bq_trends_merge
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      MERGE  `{{kv('GCP_PROJECT_ID')}}.{{kv('GCP_DATASET')}}.trends_table` T
+      USING (
+              SELECT DISTINCT
+                  region_name,
+                  score,
+                  rank,
+                  country_code,
+                  region_code,
+                  term,
+                  week,
+                  percent_gain,
+                  refresh_date,
+                  country_name
+      
+                  FROM `bigquery-public-data.google_trends.international_top_rising_terms`
+                        WHERE refresh_date = DATE('{{inputs.date}}')
+                                  ) AS S
+
+      
+        ON T.refresh_date = S.refresh_date
+        AND T.region_name = S.region_name
+        AND T.term = S.term
+        AND T.week = S.week
+        WHEN NOT MATCHED THEN
+          INSERT (
+            region_name, score, rank, country_code, region_code, term, week, percent_gain, refresh_date, country_name
+          )
+          VALUES (
+            region_name, score, rank, country_code, region_code, term, week, percent_gain, refresh_date, country_name
+          );
+    
+
+
+  - id: purge_files
+    type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
+    description: If you'd like to explore Kestra outputs, disable it.
+    disabled: false
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{kv('GCP_CREDS')}}"
+      projectId: "{{kv('GCP_PROJECT_ID')}}"
+      location: "{{kv('GCP_LOCATION')}}"
+      bucket: "{{kv('GCP_BUCKET_NAME')}}"
+
+
+
