@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: staging
+    database: trendsinsight-76709
+    schema: ntopterms_analysis
+
+  
+    tables:
+      - name: trends_table
+      
