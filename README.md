@@ -11,6 +11,7 @@ This project implements an end-to-end data pipeline on Google Cloud Platform tha
 The Looker Studio dashboard provides visualization of global and country-specific Google Trends data, highlighting trending search terms to help businesses with market analysis and SEO optimization.
 
 ![Dashboard Overview](images/dashboard.png)
+[Looker Studio Dashboard](https://lookerstudio.google.com/reporting/678132ee-126d-4297-8635-9d6ffdf06603)
 
 ## Table of Contents
 
